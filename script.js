@@ -450,7 +450,6 @@ function finishIntroVideo() {
   if (introVideoEnded) return;
   introVideoEnded = true;
   introVideo.pause();
-  introAudio.pause();
   welcome.classList.add("is-open", "video-ended");
   playIntroVideo.hidden = true;
   introVideoStatus.textContent = localizedText().videoEnded;
