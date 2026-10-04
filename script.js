@@ -1,6 +1,7 @@
 const engagementDate = new Date("2026-10-08T10:30:00+05:30");
 const welcome = document.querySelector("#welcome");
 const introVideo = document.querySelector("#introVideo");
+const introAudio = document.querySelector("#introAudio");
 const playIntroVideo = document.querySelector("#playIntroVideo");
 const introVideoStatus = document.querySelector("#introVideoStatus");
 const toast = document.querySelector("#toast");
@@ -407,52 +408,29 @@ function showToast(message) {
   toastTimer = window.setTimeout(() => toast.classList.remove("is-visible"), 3000);
 }
 
-// A soft, optional ambient chord is created only after the visitor enables sound.
 let audioContext;
-let ambience = [];
 function setSound(enabled) {
   const button = document.querySelector("#soundToggle");
   const text = localizedText();
   button.setAttribute("aria-pressed", String(enabled));
   button.setAttribute("aria-label", enabled ? text.soundOff : text.soundOn);
-
-  if (enabled) {
-    try {
-      audioContext ||= new window.AudioContext();
-      if (audioContext.state === "suspended") audioContext.resume();
-      ambience = [196, 293.66, 392].map((frequency, index) => {
-        const oscillator = audioContext.createOscillator();
-        const gain = audioContext.createGain();
-        oscillator.type = "sine";
-        oscillator.frequency.value = frequency;
-        gain.gain.value = index === 0 ? 0.006 : 0.003;
-        oscillator.connect(gain).connect(audioContext.destination);
-        oscillator.start();
-        return { oscillator, gain };
-      });
-    } catch {
-      showToast(localizedText().soundUnavailable);
-      button.setAttribute("aria-pressed", "false");
-    }
-    return;
-  }
-
-  ambience.forEach(({ oscillator, gain }) => {
-    const now = audioContext?.currentTime ?? 0;
-    gain.gain.cancelScheduledValues(now);
-    gain.gain.setTargetAtTime(0, now, 0.04);
-    oscillator.stop(now + 0.25);
-  });
-  ambience = [];
+  introAudio.muted = !enabled;
 }
 
+introAudio.muted = document.querySelector("#soundToggle").getAttribute("aria-pressed") !== "true";
 document.querySelector("#soundToggle").addEventListener("click", (event) => {
   const button = event.currentTarget;
   setSound(button.getAttribute("aria-pressed") !== "true");
 });
 
 function playChime() {
-  if (!audioContext || document.querySelector("#soundToggle").getAttribute("aria-pressed") !== "true") return;
+  if (introAudio.muted) return;
+  try {
+    audioContext ||= new window.AudioContext();
+    if (audioContext.state === "suspended") audioContext.resume();
+  } catch {
+    return;
+  }
   [659.25, 783.99, 987.77].forEach((frequency, index) => {
     const oscillator = audioContext.createOscillator();
     const gain = audioContext.createGain();
@@ -472,6 +450,7 @@ function finishIntroVideo() {
   if (introVideoEnded) return;
   introVideoEnded = true;
   introVideo.pause();
+  introAudio.pause();
   welcome.classList.add("is-open", "video-ended");
   playIntroVideo.hidden = true;
   introVideoStatus.textContent = localizedText().videoEnded;
@@ -489,8 +468,19 @@ playIntroVideo.addEventListener("click", async () => {
   playIntroVideo.hidden = true;
   introVideoStatus.textContent = localizedText().videoPlaying;
   try {
-    await introVideo.play();
+    // Start both media elements directly in the tap handler so mobile browsers
+    // treat the supplied soundtrack as part of the user's playback gesture.
+    introVideo.muted = true;
+    const videoPlayback = introVideo.play();
+    introAudio.currentTime = 0;
+    const audioPlayback = introAudio.muted
+      ? Promise.resolve()
+      : introAudio.play().catch(() => showToast(localizedText().soundUnavailable));
+    await videoPlayback;
+    await audioPlayback;
   } catch {
+    introAudio.pause();
+    introAudio.currentTime = 0;
     introVideoStarted = false;
     welcome.classList.remove("video-playing");
     playIntroVideo.hidden = false;
@@ -503,6 +493,8 @@ introVideo.addEventListener("ended", finishIntroVideo);
 introVideo.addEventListener("error", () => {
   if (!introVideoStarted || introVideoEnded) return;
   introVideoStarted = false;
+  introAudio.pause();
+  introAudio.currentTime = 0;
   welcome.classList.remove("video-playing");
   playIntroVideo.hidden = false;
   introVideoStatus.textContent = localizedText().videoLoadError;

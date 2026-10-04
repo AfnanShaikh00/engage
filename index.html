@@ -7,12 +7,12 @@
     <meta name="description" content="An engagement invitation for Alkabah and Ashmila Banu." />
     <title>Alkabah &amp; Ashmila Banu — Engagement Invitation</title>
     <link rel="stylesheet" href="styles.css?v=engagement-v25" />
-    <script src="script.js?v=engagement-v27" defer></script>
+    <script src="script.js?v=engagement-v28" defer></script>
   </head>
   <body class="intro-locked">
     <a class="skip-link" href="#invitation">Skip to Invitation</a>
 
-    <button class="sound-toggle" id="soundToggle" type="button" aria-label="Turn sound on" aria-pressed="false">
+    <button class="sound-toggle" id="soundToggle" type="button" aria-label="Turn sound off" aria-pressed="true">
       <svg class="sound-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>
       <svg class="sound-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="m17 9 5 6m0-6-5 6"/></svg>
     </button>
@@ -80,10 +80,13 @@
         </div>
 
         <div class="intro-video-panel" id="introVideoPanel">
-          <video class="intro-video" id="introVideo" preload="auto" playsinline aria-label="Engagement invitation opening video">
+          <video class="intro-video" id="introVideo" preload="auto" playsinline muted aria-label="Engagement invitation opening video">
             <source src="assets/opening-video.mp4?v=faststart-1" type="video/mp4" />
             Your browser cannot play this opening video.
           </video>
+          <audio id="introAudio" preload="auto">
+            <source src="assets/engagement-audio.mp3?v=audio-1" type="audio/mpeg" />
+          </audio>
           <button class="intro-play-button" id="playIntroVideo" type="button" aria-label="Tap anywhere to play the engagement invitation video"></button>
           <span class="sr-only" id="introVideoStatus" aria-live="polite">Tap to play the engagement invitation video.</span>
         </div>
